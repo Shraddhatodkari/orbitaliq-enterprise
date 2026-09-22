@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  orbitaliq-api:
+    build: .
+    image: orbitaliq-ai:latest
+    container_name: orbitaliq-api
+    ports:
+      - "8000:8000"
+    environment:
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-nvapi-REPLACE_ME}
+      - NVIDIA_NIM_BASE_URL=${NVIDIA_NIM_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      - NVIDIA_NIM_CHAT_MODEL=${NVIDIA_NIM_CHAT_MODEL:-meta/llama-3.1-70b-instruct}
+      - ORBITALIQ_OFFLINE_MODE=${ORBITALIQ_OFFLINE_MODE:-true}
+      - ORBITALIQ_LIVE_DATA_MODE=${ORBITALIQ_LIVE_DATA_MODE:-true}
+      - SEC_EDGAR_USER_AGENT=${SEC_EDGAR_USER_AGENT:-OrbitalIQ-Portfolio-Project research@example.com}
+      - ORBITALIQ_VISION_DEVICE=${ORBITALIQ_VISION_DEVICE:-auto}
+      - DATABASE_URL=sqlite:////data/orbitaliq.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - orbitaliq-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health', timeout=3).raise_for_status()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  orbitaliq-data:

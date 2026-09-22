@@ -1,0 +1,10 @@
+flowchart LR
+    A[REAL PUBLIC DATA\nSEC EDGAR + NASA GIBS] --> B[EVIDENCE\nfinancial metrics + satellite tiles,\neach independently live-or-insufficient]
+    B --> C[DATA QUALITY / PROVENANCE\ncompleteness, freshness, source count]
+    B --> D[DETERMINISTIC FEATURE ENGINE\nintelligence_engine.py]
+    D --> E[COMPETITIVE MOMENTUM SCORE\n0-100, auditable formula --\nor INSUFFICIENT_DATA, never fabricated]
+    E --> F[GROUNDING CRITIC\nblocks any unsupported AI claim]
+    F --> G[OPTIONAL AI EXPLANATION\nNVIDIA NIM or deterministic template]
+    C --> H[EXECUTIVE INTELLIGENCE DASHBOARD]
+    E --> H
+    G --> H

@@ -1,0 +1,56 @@
+sequenceDiagram
+    participant API as FastAPI\nPOST /api/v1/assessments
+    participant ORCH as AssessmentOrchestrator
+    participant ING as IngestionAgent
+    participant SEC as SecEdgarClient
+    participant GIBS as NasaGibsImageryProvider
+    participant VIS as VisionAgent
+    participant SCORE as IntelligenceScoringAgent
+    participant REPORT as ReportAgent
+    participant NIM as NvidiaNimClient
+    participant WATCH as WatchlistAgent
+    participant DB as Repository / SQLite
+
+    API->>ORCH: run(company)
+    activate ORCH
+    ORCH->>ING: run(company)
+    activate ING
+    ING->>SEC: fetch_financial_signals(ticker)
+    SEC-->>ING: {revenue, rd, capex}\neach AVAILABLE or INSUFFICIENT_DATA
+    ING->>GIBS: fetch_change_pair(lat, lon)
+    GIBS-->>ING: current/prior tiles\neach AVAILABLE or INSUFFICIENT_DATA
+    ING-->>ORCH: financial_signals, tiles, data_sources
+    deactivate ING
+    Note over ORCH: agent_trace["ingestion_agent"] recorded\n(status, duration, summary -- never fabricated)
+
+    ORCH->>VIS: run(current_tile, prior_tile)
+    activate VIS
+    VIS-->>ORCH: VisionFindings\n(construction/vegetation signals)
+    deactivate VIS
+    Note over ORCH: agent_trace["vision_agent"] recorded
+
+    ORCH->>SCORE: run(financial_signals, vision_findings, data_sources)
+    activate SCORE
+    Note over SCORE: data-sufficiency gate:\nexclude untrusted/None signals,\nrenormalize, or return INSUFFICIENT_DATA
+    SCORE-->>ORCH: MomentumAssessmentResult
+    deactivate SCORE
+    Note over ORCH: agent_trace["intelligence_scoring_agent"] recorded
+
+    ORCH->>REPORT: run(company, momentum_result, vision_findings)
+    activate REPORT
+    REPORT->>NIM: generate_intelligence_briefing(...)\n(or offline_briefing when no live-data/API key)
+    NIM-->>REPORT: narrative text
+    REPORT-->>ORCH: NarrativeReport
+    deactivate REPORT
+    Note over ORCH: grounding critic checks every numeric\nclaim against structured evidence;\nungrounded text is replaced with the\ndeterministic template, never published
+    Note over ORCH: agent_trace["report_agent"] recorded
+
+    ORCH->>WATCH: run(company_name, momentum_level, momentum_score)
+    activate WATCH
+    WATCH-->>ORCH: WatchlistDecision\n(NONE tier + not-flagged when INSUFFICIENT_DATA)
+    deactivate WATCH
+    Note over ORCH: agent_trace["watchlist_agent"] recorded
+
+    ORCH->>DB: persist AssessmentRecord\n(+ data_sources, evidence, data_quality)
+    ORCH-->>API: AssessmentResult
+    deactivate ORCH

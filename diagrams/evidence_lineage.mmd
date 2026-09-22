@@ -1,0 +1,45 @@
+flowchart LR
+    subgraph RAW["1. Raw real source"]
+        R1["SEC EDGAR XBRL fact\n(e.g. Revenues, FY2023 vs FY2022)"]
+        R2["NASA GIBS tile pair\n(current + ~180d-prior observation)"]
+    end
+
+    subgraph VALID["2. Validated observation"]
+        V1["Fiscal-year / unit / period / tag\nvalidated -- or INSUFFICIENT_DATA\nwith a stated reason"]
+        V2["Image content-type / decode\nvalidated -- or INSUFFICIENT_DATA\nwith a stated reason"]
+    end
+
+    subgraph NORM["3. Normalized value"]
+        N1["YoY growth % -> 0-1 growth index\n(clipped to a stated, documented range)"]
+        N2["CNN + band-difference analytic path\n-> construction/vegetation change index"]
+    end
+
+    subgraph DERIVED["4. Derived metric"]
+        D1["financial_composite\n(mean of trusted financial signals)"]
+        D2["satellite_composite\n(mean of trusted satellite signals)"]
+    end
+
+    subgraph SCORE["5. Score (only if valid)"]
+        S1["momentum_score = 0.6 x financial + 0.4 x satellite\n+ convergence bonus\n-- or momentum_level=INSUFFICIENT_DATA\nif nothing is trusted"]
+    end
+
+    subgraph INTERP["6. Interpretation"]
+        I1["Grounding-checked LLM narrative\n(every cited number verified against\nthe structured evidence above)\nor the deterministic template"]
+    end
+
+    subgraph AUDIT["Evidence & Audit record (core/evidence.py)"]
+        E1["evidence_id, assessment_id, source,\nsource_identifier, source_url,\nretrieved_at, observation_period,\ninput_value, normalized_value,\ntransformation, derived_metric,\ndata-quality status"]
+    end
+
+    R1 --> V1 --> N1 --> D1 --> S1 --> I1
+    R2 --> V2 --> N2 --> D2 --> S1
+
+    V1 -.every field.-> E1
+    N1 -.every field.-> E1
+    D1 -.every field.-> E1
+    S1 -.every field.-> E1
+    V2 -.every field.-> E1
+    N2 -.every field.-> E1
+
+    classDef audit fill:#3a3a1f,stroke:#5c5c1f,color:#ffffff,font-weight:bold;
+    class E1 audit;

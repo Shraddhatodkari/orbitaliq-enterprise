@@ -1,0 +1,59 @@
+flowchart TB
+    subgraph SOURCES["External Authoritative Sources (free, keyless)"]
+        SEC["SEC EDGAR XBRL\nCompany Facts API"]
+        GIBS["NASA GIBS\nVIIRS/MODIS tile service"]
+    end
+
+    subgraph CLIENTS["Data-Provider Layer (src/orbitaliq/data)"]
+        SECC["SecEdgarClient\nfetch_financial_signals()\nfetch_financial_profile()"]
+        GIBSC["NasaGibsImageryProvider\nfetch_change_pair()"]
+    end
+
+    subgraph OUTCOME["Per-signal outcome (never a third option)"]
+        LIVE["live=True\nsource='sec_edgar_live' / 'nasa_gibs_live'\nstatus='AVAILABLE'\nreal numeric value"]
+        INSUFF["live=False\nsource='insufficient_data'\nstatus='INSUFFICIENT_DATA'\nvalue=None (financial) /\nblank placeholder tile (satellite)"]
+    end
+
+    subgraph GATE["Data-Sufficiency Gate (core/intelligence_engine.py)"]
+        TRUST["_is_trusted_source()\nexcludes insufficient_data /\nsynthetic_fallback / NOT_AVAILABLE"]
+        NONEGUARD["None-value guard\n(_signal_value) -- never multiplies\nor treats a missing value as zero"]
+        RENORM["Renormalize composite over\nonly the trusted, non-null signals"]
+    end
+
+    subgraph SCORE["Deterministic Scoring Outcome"]
+        REAL["Real 0-100 momentum_score\n(when >=1 side has trusted data)"]
+        NODATA["momentum_score=0.0\nmomentum_level=INSUFFICIENT_DATA\n(when NOTHING is trusted --\nnever a fabricated number)"]
+    end
+
+    subgraph DQ["Data Quality Center (core/data_quality.py)"]
+        BUCKET["Buckets every data_sources entry:\nlive / fallback (offline-demo only) /\nunavailable (insufficient_data, NOT_AVAILABLE)"]
+    end
+
+    subgraph PRESENT["Presentation (Streamlit + dashboard/)"]
+        UI["Badges: LIVE / CACHED / DERIVED /\nINSUFFICIENT_DATA / ERROR\n-- never a fake placeholder KPI"]
+    end
+
+    SEC --> SECC
+    GIBS --> GIBSC
+    SECC -->|success| LIVE
+    SECC -->|network/parse/unknown-ticker/\nno-usable-tag failure| INSUFF
+    GIBSC -->|success| LIVE
+    GIBSC -->|network/decode failure| INSUFF
+
+    LIVE --> TRUST
+    INSUFF --> TRUST
+    TRUST --> NONEGUARD --> RENORM
+    RENORM -->|>=1 trusted side| REAL
+    RENORM -->|nothing trusted| NODATA
+
+    LIVE --> BUCKET
+    INSUFF --> BUCKET
+
+    REAL --> UI
+    NODATA --> UI
+    BUCKET --> UI
+
+    classDef insufficient fill:#7a1f1f,stroke:#4d0f0f,color:#ffffff,font-weight:bold;
+    class INSUFF,NODATA insufficient;
+    classDef live fill:#1f6feb,stroke:#0d47a1,color:#ffffff,font-weight:bold;
+    class LIVE,REAL live;

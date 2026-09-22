@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OrbitalIQ Enterprise — Competitive Expansion Intelligence Platform</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-title">OrbitalIQ Enterprise</div>
+      <div class="brand-sub">Competitive Expansion Intelligence Platform</div>
+    </div>
+    <div class="nav-item active" data-view="new-assessment">New Assessment</div>
+    <div class="nav-item" data-view="dashboard">Executive Dashboard</div>
+    <div class="nav-item" data-view="assessments">Assessment History</div>
+    <div class="nav-item" data-view="compare">Competitor Comparison</div>
+    <div class="nav-item" data-view="watchlist">Watchlist</div>
+    <div class="sidebar-footer">
+      Real public data (SEC EDGAR + NASA GIBS) → deterministic scoring →
+      grounding-gated narrative. Every unavailable datapoint is disclosed,
+      never filled in.
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ===================== NEW ASSESSMENT ===================== -->
+    <section id="view-new-assessment" class="view active">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">New Competitive-Intelligence Assessment</h1>
+          <div class="page-subtitle">
+            Enter any public company and facility. No hardcoded company list — this runs the live
+            5-agent pipeline (Ingestion → Vision → Scoring → Report → Watchlist) against real, free,
+            keyless public data sources.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Company / Facility</div>
+        <form id="assessment-form">
+          <div class="field-grid">
+            <div>
+              <label for="f-ticker">Ticker</label>
+              <input id="f-ticker" name="ticker" placeholder="e.g. TSLA" required maxlength="20" />
+            </div>
+            <div>
+              <label for="f-company">Company Name</label>
+              <input id="f-company" name="company_name" placeholder="e.g. Tesla, Inc." required maxlength="255" />
+            </div>
+            <div>
+              <label for="f-facility">Facility Name</label>
+              <input id="f-facility" name="facility_name" placeholder="e.g. Gigafactory Nevada" required maxlength="255" />
+            </div>
+            <div>
+              <label for="f-industry">Industry</label>
+              <input id="f-industry" name="industry" placeholder="general" />
+            </div>
+            <div>
+              <label for="f-lat">Facility Latitude</label>
+              <input id="f-lat" name="latitude" type="number" step="any" min="-90" max="90" placeholder="39.5380" required />
+            </div>
+            <div>
+              <label for="f-lon">Facility Longitude</label>
+              <input id="f-lon" name="longitude" type="number" step="any" min="-180" max="180" placeholder="-119.4425" required />
+            </div>
+            <div>
+              <label for="f-mcap">Market Cap (USD, optional)</label>
+              <input id="f-mcap" name="market_cap_usd" type="number" step="any" min="0" placeholder="optional" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="submit-btn">Run Assessment</button>
+            <span class="hint" id="submit-hint"></span>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">What this does</div>
+        <p class="hint">
+          Submitting runs the full agent pipeline against SEC EDGAR (XBRL company facts) for financial
+          growth/profitability/balance-sheet/investment-intensity metrics, and NASA GIBS (VIIRS/MODIS)
+          for a bi-temporal satellite change-detection tile pair at the given coordinates. Every metric
+          that cannot be retrieved live is reported honestly as <em>Insufficient Data</em> — nothing is
+          fabricated to complete the picture. This typically takes a few seconds.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== EXECUTIVE DASHBOARD ===================== -->
+    <section id="view-dashboard" class="view">
+      <div id="dashboard-empty" class="empty-state">
+        Run a new assessment, or select one from Assessment History, to see it here.
+      </div>
+      <div id="dashboard-content" style="display:none;"></div>
+    </section>
+
+    <!-- ===================== ASSESSMENT HISTORY ===================== -->
+    <section id="view-assessments" class="view">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Assessment History</h1>
+          <div class="page-subtitle">Every assessment run, persisted. Select up to 10 for side-by-side comparison.</div>
+        </div>
+        <button class="secondary" id="refresh-assessments-btn">Refresh</button>
+      </div>
+      <div class="panel">
+        <div class="flex-between" style="margin-bottom:12px;">
+          <div class="hint" id="assessments-count"></div>
+          <button class="secondary" id="compare-selected-btn" disabled>Compare selected →</button>
+        </div>
+        <div id="assessments-list"></div>
+      </div>
+    </section>
+
+    <!-- ===================== COMPETITOR COMPARISON ===================== -->
+    <section id="view-compare" class="view">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Competitor Comparison</h1>
+          <div class="page-subtitle">
+            Multi-company side-by-side. Sorted by momentum_score — a disclosed, deterministic sort,
+            never a subjective ranking.
+          </div>
+        </div>
+      </div>
+      <div id="compare-empty" class="empty-state">
+        Select 2–10 assessments from Assessment History, then click "Compare selected".
+      </div>
+      <div id="compare-content" style="display:none;"></div>
+    </section>
+
+    <!-- ===================== WATCHLIST ===================== -->
+    <section id="view-watchlist" class="view">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Watchlist</h1>
+          <div class="page-subtitle">
+            WATCH / REVIEW / HIGH_SIGNAL — derived entirely from the existing, documented
+            momentum-level thresholds. No hidden criteria.
+          </div>
+        </div>
+        <div class="flex-between">
+          <select id="watchlist-tier-filter">
+            <option value="">All tiers</option>
+            <option value="HIGH_SIGNAL">HIGH_SIGNAL</option>
+            <option value="REVIEW">REVIEW</option>
+            <option value="WATCH">WATCH</option>
+            <option value="NONE">NONE (all assessed, incl. de-escalated)</option>
+          </select>
+          <button class="secondary" id="refresh-watchlist-btn">Refresh</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div id="watchlist-content"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

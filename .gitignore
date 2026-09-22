@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+*.db
+.env
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.DS_Store
+
+# Local SQLite runtime files
+*.db-shm
+*.db-wal
