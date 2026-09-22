@@ -306,7 +306,7 @@ The exact request above (`TSLA`, Gigafactory Nevada, `39.5380, -119.4425`) was a
 ## Testing
 
 ```bash
-pytest                              # 342 tests, 97% line coverage, fully network-free
+pytest                              # 353 tests, 97% line coverage, fully network-free
 python scripts/verify_live_apis.py  # proves the live code paths against the real internet; prints LIVE/UNAVAILABLE per source
 ```
 
@@ -340,7 +340,7 @@ streamlit_app/        optional analyst dashboard (presentation layer only, calls
   sections/              one module per nav section (executive, new_assessment, company_intelligence,
                           satellite, comparison, watchlist, strategy, agent_trace, evidence_quality)
 scripts/              run_demo.py, seed_data.py, verify_live_apis.py (LIVE/UNAVAILABLE verdict)
-tests/                342 tests across every module, respx-mocked at real endpoint URLs
+tests/                353 tests across every module, respx-mocked at real endpoint URLs
 diagrams/             architecture.mmd/.svg/.png, data_flow.mmd, agent_orchestration.mmd,
                         evidence_lineage.mmd, pipeline_overview.mmd
 docs/                 FINAL_VALIDATION_REPORT.md — actually-executed validation results

@@ -1,57 +1,84 @@
 flowchart TB
-    subgraph CLIENT["Client Layer"]
-        AN["Analyst / Consultant\n(REST client, CLI demo, or BI tool)"]
+    subgraph EXPERIENCE["ANALYST EXPERIENCE"]
+        direction LR
+        STREAMLIT["Streamlit Analyst Workspace<br/>Company Intelligence • Satellite Change • Watchlist"]
+        STATIC["Enterprise Dashboard<br/>Executive Overview • Signal Monitoring • Audit"]
+        API["FastAPI REST API<br/>Assessment • Company Resolution • Evidence • Health"]
     end
 
-    subgraph API["FastAPI Application (src/orbitaliq/api)"]
-        HEALTH["GET /health"]
-        CREATE["POST /api/v1/assessments"]
-        GET["GET /api/v1/assessments/:id"]
-        LIST["GET /api/v1/assessments"]
-    end
-
-    subgraph ORCH["Agentic Orchestrator (agents/orchestrator.py)"]
+    subgraph ORCHESTRATION["INTELLIGENCE ORCHESTRATION"]
         direction TB
-        A1["1. Ingestion Agent\nfetch financial signals + bi-temporal satellite tile pair"]
-        A2["2. Vision Agent\nCNN + change-index land-cover change detection"]
-        A3["3. Intelligence Scoring Agent\ndeterministic composite momentum score"]
-        A4["4. Report Agent\nLLM executive briefing"]
-        A5["5. Watchlist Agent\nescalation decision + dispatch"]
-        A1 --> A2 --> A3 --> A4 --> A5
+        ORCH["Multi-Agent Orchestrator"]
+        INGEST["01 • Ingestion Agent<br/>Financial + Geospatial + Satellite Evidence"]
+        VISION["02 • Vision Agent<br/>Bi-temporal Satellite Change Detection"]
+        SCORE["03 • Scoring Agent<br/>Financial + Satellite Signal Fusion"]
+        REPORT["04 • Report Agent<br/>Deterministic Grounded Narrative"]
+        WATCH["05 • Watchlist Agent<br/>Signal Classification + Monitoring"]
     end
 
-    subgraph NVIDIA["NVIDIA AI Stack"]
-        NIM["NVIDIA NIM\n(build.nvidia.com / self-hosted)\nLlama 3.1 70B Instruct"]
-        CNN["FacilityChangeCNN (PyTorch)\nCUDA-ready * CPU fallback\nbi-temporal 6-channel input\nONNX / TensorRT export path"]
+    subgraph INTELLIGENCE["ENTERPRISE INTELLIGENCE & CONTROL PLANE"]
+        direction LR
+        GATE["Data Sufficiency Gate<br/>Evidence Availability • Completeness"]
+        CONVERGENCE["Strategic Signal Convergence<br/>Cross-domain Evidence Corroboration"]
+        CRITIC["Grounding Critic<br/>Evidence Consistency • Unsupported-Claim Control"]
+        QUALITY["Data Quality Center<br/>Coverage • Freshness • Availability"]
+        AUDIT["Evidence & Audit Trail<br/>Source • Timestamp • Provenance • Assessment ID"]
     end
 
-    subgraph LIVE["Real Public Data APIs (live by default, 100% free)"]
-        direction TB
-        SEC["SEC EDGAR XBRL Company Facts\nkeyless * revenue / R&D / capex growth"]
-        GIBS["NASA GIBS\nkeyless * real VIIRS/MODIS satellite tiles\ncurrent + ~180d-prior pair"]
+    subgraph DATA["LIVE PUBLIC DATA PLANE"]
+        direction LR
+        SEC["SEC EDGAR / XBRL<br/>Revenue • CapEx • R&D • Financial Signals"]
+        NASA["NASA GIBS<br/>Bi-temporal Satellite Observations"]
+        CENSUS["U.S. Census Geocoder<br/>Facility Location Verification"]
+        PUBLIC["Public Evidence Layer<br/>Optional Independent Corroboration"]
     end
 
-    subgraph DATA["Data Layer"]
-        FALLBACK["Synthetic fallback generator\n(per-signal, only when a live\nsource is unreachable/no-coverage)"]
-        DB[("SQLAlchemy ORM\nSQLite (dev) / Postgres (prod)\n+ data_sources provenance per run")]
+    subgraph ANALYTICS["ANALYTICS & MODELING"]
+        direction LR
+        PYTORCH["PyTorch Vision Pipeline<br/>CPU-safe • CUDA-ready"]
+        CHANGE["Satellite Change Analytics<br/>Band Difference • Temporal Comparison"]
+        NIM["NVIDIA NIM<br/>Optional LLM Narrative Layer"]
     end
 
-    AN -->|HTTPS JSON| HEALTH
-    AN -->|HTTPS JSON| CREATE
-    AN -->|HTTPS JSON| GET
-    AN -->|HTTPS JSON| LIST
+    subgraph PERSISTENCE["PERSISTENCE & TRACEABILITY"]
+        direction LR
+        DB["SQLite Repository<br/>Assessments • Signals • Evidence"]
+        LOG["Audit / Runtime Records<br/>Execution Status • Data Quality"]
+    end
 
-    CREATE --> ORCH
-    A1 --> SEC
-    A1 --> GIBS
-    A1 -.fallback only.-> FALLBACK
-    A2 --> CNN
-    A4 --> NIM
-    ORCH -->|persist AssessmentRecord\nincl. data_sources| DB
-    GET --> DB
-    LIST --> DB
-
-    classDef nvidia fill:#76b900,stroke:#4d7a00,color:#0b1f00,font-weight:bold;
-    class NIM,CNN nvidia;
-    classDef live fill:#1f6feb,stroke:#0d47a1,color:#ffffff,font-weight:bold;
-    class SEC,GIBS live;
+    STREAMLIT --> API
+    STATIC --> API
+    API --> ORCH
+    ORCH --> INGEST
+    ORCH --> VISION
+    ORCH --> SCORE
+    ORCH --> REPORT
+    ORCH --> WATCH
+    INGEST --> SEC
+    INGEST --> NASA
+    INGEST --> CENSUS
+    INGEST --> PUBLIC
+    NASA --> VISION
+    VISION --> PYTORCH
+    PYTORCH --> CHANGE
+    CHANGE --> SCORE
+    SEC --> SCORE
+    INGEST --> GATE
+    GATE --> SCORE
+    SCORE --> CONVERGENCE
+    CONVERGENCE --> CRITIC
+    CRITIC --> REPORT
+    SCORE --> WATCH
+    WATCH --> QUALITY
+    REPORT -. optional .-> NIM
+    NIM -. grounded narrative only .-> REPORT
+    INGEST --> AUDIT
+    SCORE --> AUDIT
+    REPORT --> AUDIT
+    WATCH --> AUDIT
+    QUALITY --> AUDIT
+    CRITIC --> AUDIT
+    API --> DB
+    AUDIT --> DB
+    QUALITY --> LOG
+    ORCH --> LOG
